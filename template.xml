@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns:Documents Version="1.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:ns= "http://fsrar.ru/WEGAIS/WB_DOC_SINGLE_01"
+ xmlns:oref="http://fsrar.ru/WEGAIS/ClientRef_v2"
+ xmlns:pref="http://fsrar.ru/WEGAIS/ProductRef_v2"
+ xmlns:wb= "http://fsrar.ru/WEGAIS/TTNSingle_v2"
+ xmlns:qp="http://fsrar.ru/WEGAIS/QueryParameters"
+ xmlns:qf="http://fsrar.ru/WEGAIS/QueryFormF1F2"
+ xmlns:wa= "http://fsrar.ru/WEGAIS/ActTTNSingle_v2"
+ xmlns:wt= "http://fsrar.ru/WEGAIS/ConfirmTicket"
+ xmlns:ce="http://fsrar.ru/WEGAIS/CommonEnum"
+ xmlns:awr="http://fsrar.ru/WEGAIS/ActWriteOff_v2"
+ >
+<ns:Owner>
+<ns:FSRAR_ID>010000002477</ns:FSRAR_ID>
+</ns:Owner>
+<ns:Document>
+</ns:Document>
+</ns:Documents>

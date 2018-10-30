@@ -37,6 +37,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import java.util.Locale;
+import java.util.TimeZone;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -1260,7 +1263,8 @@ public class DataModule {
         int head_id = 0;
         boolean result = false;
         DateFormat lformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date rest_date = replyRests.getRestsDate().toGregorianCalendar().getTime();
+        lformat.setTimeZone(TimeZone.getTimeZone("Asia/Novosibirsk"));
+        Date rest_date = replyRests.getRestsDate().toGregorianCalendar(TimeZone.getTimeZone("Europe/Moscow"),Locale.US,null).getTime();
         String sqlQuery = String.format(SET_REST_HEAD, p_guid, lformat.format(rest_date));
         try {
             stmt = connection.prepareStatement(sqlQuery);

@@ -106,7 +106,7 @@ public class DataModule {
     public static final String WB_IN_REJECT = "WayBillReject";
     public static final String WB_OUT_REJECT = "WayBillOutReject";
     private static String SET_FORM1 =
-        "execute procedure PR_T_EGAIS_FORM_A_REQ_SET('%1$s','%2$s','%3$s','%4$s','%5$s','%6$s',%7$s,%8$s,null)"; ;
+        "execute procedure PR_T_EGAIS_FORM_A_REQ_SET('%1$s','%2$s','%3$s','%4$s','%5$s','%6$s',%7$s,%8$s,null,%9$s,%10$s)"; ;
     private static String SET_REGINFO_OUT =
         "select * from PR_T_EGAIS_TTN_OUT_FORMREG_SET(%1$s,'%2$s','%3$s',%4$s,%5$s,'%6$s',%7$s,'%8$s',null)";
     private static String SET_REPLY_F2 = "select * from PR_T_EGAIS_REPLY_F2('%1$s','%2$s',%3$s,%4$s,'%5$s','%6$s')";
@@ -720,6 +720,7 @@ public class DataModule {
 
 
 
+
                     }
                 }
                 result = true;
@@ -1264,7 +1265,9 @@ public class DataModule {
         boolean result = false;
         DateFormat lformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         lformat.setTimeZone(TimeZone.getTimeZone("Asia/Novosibirsk"));
-        Date rest_date = replyRests.getRestsDate().toGregorianCalendar(TimeZone.getTimeZone("Europe/Moscow"),Locale.US,null).getTime();
+        Date rest_date =
+            replyRests.getRestsDate().toGregorianCalendar(TimeZone.getTimeZone("Europe/Moscow"), Locale.US,
+                                                          null).getTime();
         String sqlQuery = String.format(SET_REST_HEAD, p_guid, lformat.format(rest_date));
         try {
             stmt = connection.prepareStatement(sqlQuery);
@@ -1444,7 +1447,11 @@ public class DataModule {
                           EGAISparser.format.format(replyForm1.getBottlingDate().toGregorianCalendar().getTime()),
                           (replyForm1.getGTDDate() != null) ?
                           "'" + EGAISparser.format.format(replyForm1.getGTDDate().toGregorianCalendar().getTime()) +
-                          "'" : "null", replyForm1.getQuantity());
+                          "'" : "null", replyForm1.getQuantity(),
+                          (replyForm1.getGTDNUMBER() != null) ? "'" + replyForm1.getGTDNUMBER() + "'" : "null",
+                          (replyForm1.getGTDDate() != null) ?
+                          "'" + EGAISparser.format.format(replyForm1.getGTDDate().toGregorianCalendar().getTime()) +
+                          "'" : "null");
         try {
             stmt = connection.prepareStatement(sqlQuery);
             stmt.execute();

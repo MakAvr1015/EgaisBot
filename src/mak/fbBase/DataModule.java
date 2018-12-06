@@ -49,6 +49,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import mak.wegais.ReplyForm2History;
+
 import org.w3c.dom.Node;
 
 import ru.fsrar.wegais.actinventoryinformf2reg.ActInventoryInformF2Reg;
@@ -147,6 +149,8 @@ public class DataModule {
         "select f_id from PR_T_EGAIS_TTN_FORMREG_SET_S(" + "%1$s,'%2$s','%3$s',%4$s)";
     private static String SET_AMC_UNACTIVE = "execute procedure PR_T_EGAIS_AMC_SET_UNACTIVE('%1$s')";
     private static String SET_AMC2 = "execute procedure PR_T_EGAIS_AMC_SET2('%1$s', '%2$s')";
+    private static String SET_WBOUT_POS_NEWB =
+        "execute procedure PR_T_EGAIS_TTN_OUT_POS_SET_NEWB('%1$s','%2$s','%3$s');";
     private static DataModule dm;
 
 
@@ -721,6 +725,8 @@ public class DataModule {
 
 
 
+
+
                     }
                 }
                 result = true;
@@ -914,6 +920,7 @@ public class DataModule {
 
                 header.setDate(calendar);
                 header.setShippingDate(calendar);
+
                 wayBillTypeV3.setIdentity(rs.getString("F_ID"));
                 WbType wbType = WbType.fromValue(rs.getString("F_TTN_TYPE"));
                 header.setType(wbType);
@@ -926,7 +933,7 @@ public class DataModule {
                 header.getTransport().setTRANDRIVER(rs.getString("F_TRAN_DRIVER"));
                 header.getTransport().setTRANLOADPOINT(rs.getString("F_TRAN_LOADPOINT"));
                 header.getTransport().setTRANUNLOADPOINT(rs.getString("F_TRAN_UNLOADPOINT"));
-                wayBillTypeV3.setIdentity(rs.getString("F_REGID"));
+//                wayBillTypeV3.setIdentity(rs.getString("F_REGID"));
                 //                f_egaisId = rs.getString("F_REGID");
             }
             if (f_consign_id > 0) {
@@ -1810,5 +1817,28 @@ public class DataModule {
         }
 
         return result;
+    }
+
+    public void SaveReplyForm2Hist(ReplyForm2 rf, ReplyForm2History repHist) {
+        ResultSet rs;
+        PreparedStatement stmt;
+        String sqlQuery;
+        for (int i = 0; i < repHist.getStep().size(); i++) {
+
+            if (repHist.getStep().get(i).getNewFormB() != null) {
+                try {
+                    sqlQuery =
+                        String.format(SET_WBOUT_POS_NEWB, repHist.getStep().get(i).getDocId(), rf.getInformF2RegId(),
+                                      repHist.getStep().get(i).getNewFormB());
+
+                    stmt = connection.prepareStatement(sqlQuery);
+                    stmt.execute();
+
+                } catch (SQLException e) {
+
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

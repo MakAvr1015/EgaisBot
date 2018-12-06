@@ -51,6 +51,7 @@ public class Documents {
     protected DocBody document;
     @XmlAttribute(name = "Version")
     protected String version;
+    
 
     /**
      * Gets the value of the owner property.

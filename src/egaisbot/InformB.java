@@ -161,7 +161,7 @@ public class InformB {
         qr.setOwner(sender);
         DocBody body =new DocBody();
         QueryFormF1F2 qff2=new QueryFormF1F2();
-        qff2.setFormRegId(oldRegId);
+        qff2.setFormRegId(this.regId);
         body.setQueryFormF2(qff2);
         qr.setDocument(body);
         return qr;

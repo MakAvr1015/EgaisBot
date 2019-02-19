@@ -86,6 +86,7 @@ import ru.fsrar.wegais.replyrestbcode.ReplyRestBCode;
 import ru.fsrar.wegais.replyrests.ReplyRests;
 import ru.fsrar.wegais.replyrests.StockPositionType;
 import ru.fsrar.wegais.replyrests_v2.ReplyRestsV2;
+import ru.fsrar.wegais.requestrepealwb.RequestRepealWB;
 import ru.fsrar.wegais.ticket.TicketType;
 import ru.fsrar.wegais.ttninformf2reg.InformF2PositionType;
 import ru.fsrar.wegais.ttninformf2reg.WayBillInformF2RegType;
@@ -323,6 +324,9 @@ public class DataModule {
             }
             if (documents.getDocument().getReplyAPV2() != null) {
                 result = SaveReplyApV2(documents.getDocument().getReplyAPV2(), p_guid);
+            }
+            if (documents.getDocument().getRequestRepealWB()!= null){
+                result = SaveRequestRepealWb(documents.getDocument().getRequestRepealWB(), p_guid);
             }
 
         }
@@ -1820,7 +1824,6 @@ public class DataModule {
     }
 
     public void SaveReplyForm2Hist(ReplyForm2 rf, ReplyForm2History repHist) {
-        ResultSet rs;
         PreparedStatement stmt;
         String sqlQuery;
         for (int i = 0; i < repHist.getStep().size(); i++) {
@@ -1840,5 +1843,9 @@ public class DataModule {
                 }
             }
         }
+    }
+
+    private boolean SaveRequestRepealWb(RequestRepealWB requestRepealWB, String p_guid) {
+        return false;
     }
 }

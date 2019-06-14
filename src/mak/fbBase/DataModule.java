@@ -113,6 +113,7 @@ public class DataModule {
     private static String SET_REGINFO_OUT =
         "select * from PR_T_EGAIS_TTN_OUT_FORMREG_SET(%1$s,'%2$s','%3$s',%4$s,%5$s,'%6$s',%7$s,'%8$s',null)";
     private static String SET_REPLY_F2 = "select * from PR_T_EGAIS_REPLY_F2('%1$s','%2$s',%3$s,%4$s,'%5$s','%6$s')";
+    private static final String SET_REQREPL_WB = "select f_id from pr_t_egais_req_repeal_set('%1$s')";
 
     Connection connection;
 
@@ -121,7 +122,7 @@ public class DataModule {
         "'%2$s',%3$s,%4$s,%5$s,%6$s,%7$s,%8$s,%9$s,%10$s,null,null)"; //,?,?" + ")";
     private static String SET_WBHEAD_IN =
         "select f_id,f_remove_url from PR_T_EGAIS_TTN_SET" +
-        "('%1$s','%2$s','%3$s',%4$s,%5$s,%6$s,%7$s,%8$s,'%9$s',%10$s,null)";
+        "('%1$s','%2$s','%3$s',%4$s,%5$s,%6$s,%7$s,%8$s,%9$s,%10$s,null,'%11$s')";
     private static String SET_PARTNER =
         "select f_id from PR_T_EGAIS_PARTNER_SET(%1$s,%2$s,%3$s,%4$s,%5$s,%6$s,%7$s,null,%8$s,null,%9$s,%10$s,%11$s)";
     private static String SET_WBPOS_IN =
@@ -145,7 +146,7 @@ public class DataModule {
         "select * from PR_T_EGAIS_TTN_OUT_FORMREG_SET" + "(%1$s,'%2$s','%3$s',%4$s,'%5$s','%6$s','%7$s','%8$s',null)";
 
     private static String SET_SQL_REGINFO =
-        "select * from PR_T_EGAIS_TTN_FORMREG_SET" + "(%1$s,'%2$s','%3$s',%4$s,'%5$s','%6$s','%7$s','%8$s',null)";
+        "select * from PR_T_EGAIS_TTN_FORMREG_SET" + "(%1$s,'%2$s','%3$s',%4$s,%5$s,'%6$s','%7$s','%8$s',null)";
     private static String SET_SQL_REGINFO_STR =
         "select f_id from PR_T_EGAIS_TTN_FORMREG_SET_S(" + "%1$s,'%2$s','%3$s',%4$s)";
     private static String SET_AMC_UNACTIVE = "execute procedure PR_T_EGAIS_AMC_SET_UNACTIVE('%1$s')";
@@ -288,7 +289,7 @@ public class DataModule {
                 result = SaveTicket(documents.getDocument().getTicket());
             }
             if (documents.getDocument().getWayBillV3() != null) {
-                result = SaveWayBillV3(documents.getDocument().getWayBillV3(), p_recno);
+                result = SaveWayBillV3(documents.getDocument().getWayBillV3(), p_recno, p_guid);
             }
             if (documents.getDocument().getTTNInformF2Reg() != null) {
                 result = SavetTTNInformF2Reg(documents.getDocument().getTTNInformF2Reg());
@@ -325,7 +326,7 @@ public class DataModule {
             if (documents.getDocument().getReplyAPV2() != null) {
                 result = SaveReplyApV2(documents.getDocument().getReplyAPV2(), p_guid);
             }
-            if (documents.getDocument().getRequestRepealWB()!= null){
+            if (documents.getDocument().getRequestRepealWB() != null) {
                 result = SaveRequestRepealWb(documents.getDocument().getRequestRepealWB(), p_guid);
             }
 
@@ -333,11 +334,12 @@ public class DataModule {
         return result;
     }
 
-    private boolean SaveWayBillV3(WayBillTypeV3 wayBillTypeV3, int p_urlNo) {
+    private boolean SaveWayBillV3(WayBillTypeV3 wayBillTypeV3, int p_urlNo, String p_guid) {
         ResultSet rs;
         PreparedStatement stmt;
         String sqlQuery;
         boolean result = false;
+        boolean ttn_exists = false;
         int f_head = 0;
         WayBillTypeV3.Header header = wayBillTypeV3.getHeader();
         int f_consignee = SaveOrgInfoV2(header.getConsignee());
@@ -346,28 +348,29 @@ public class DataModule {
             String.format(SET_WBHEAD_IN, header.getNUMBER(),
                           EGAISparser.format.format(header.getDate().toGregorianCalendar().getTime()),
                           header.getType().value(), null, f_shiper, f_consignee, null, null,
-                          wayBillTypeV3.getIdentity(), p_urlNo);
+                          (wayBillTypeV3.getIdentity() != null) ? "'" + wayBillTypeV3.getIdentity() + "'" : "null",
+                          p_urlNo, p_guid);
         try {
             stmt = connection.prepareStatement(sqlQuery);
             //            stmt.setBlob(1, ts);
             rs = stmt.executeQuery();
             while (rs.next()) {
                 f_head = rs.getInt("F_ID");
-                /*                if (rs.getInt("f_remove_url") == 1) {
-                    this.remove_url = true;
-                }*/
+                if (rs.getInt("f_remove_url") == 1) {
+                    ttn_exists = true;
+                }
             }
-            result = true;
+            //            result = true;
         } catch (SQLException e) {
             result = false;
             System.out.println(sqlQuery);
             e.printStackTrace();
         }
-        if (result) {
+        if (!ttn_exists) {
             List<ru.fsrar.wegais.ttnsingle_v3.PositionType> positions = wayBillTypeV3.getContent().getPosition();
             for (int i = 0; i < positions.size(); i++) {
-                result = SaveWbPositionV3(positions.get(i), f_head, "WB_IN");
-                if (!result) {
+                ttn_exists = SaveWbPositionV3(positions.get(i), f_head, "WB_IN");
+                if (!ttn_exists) {
                     break;
                 }
             }
@@ -731,6 +734,8 @@ public class DataModule {
 
 
 
+
+
                     }
                 }
                 result = true;
@@ -937,7 +942,7 @@ public class DataModule {
                 header.getTransport().setTRANDRIVER(rs.getString("F_TRAN_DRIVER"));
                 header.getTransport().setTRANLOADPOINT(rs.getString("F_TRAN_LOADPOINT"));
                 header.getTransport().setTRANUNLOADPOINT(rs.getString("F_TRAN_UNLOADPOINT"));
-//                wayBillTypeV3.setIdentity(rs.getString("F_REGID"));
+                //                wayBillTypeV3.setIdentity(rs.getString("F_REGID"));
                 //                f_egaisId = rs.getString("F_REGID");
             }
             if (f_consign_id > 0) {
@@ -1558,7 +1563,8 @@ public class DataModule {
         } else {
             sqlQuery =
                 String.format(SET_SQL_REGINFO, null, header.getWBNUMBER(), header.getWBDate(), v_shiper,
-                              header.getIdentity(), header.getWBRegId(), header.getEGAISFixNumber(),
+                              (header.getIdentity() != null) ? "'" + header.getIdentity() + "'" : "null",
+                              header.getWBRegId(), header.getEGAISFixNumber(),
                               EGAISparser.format.format(header.getEGAISFixDate().toGregorianCalendar().getTime()));
             ttn_type = true;
         }
@@ -1576,7 +1582,7 @@ public class DataModule {
                     result = false;
                 }
             }
-            if (result && (v_id > 0)) {
+            if (v_id > 0) {
                 List<InformF2PositionType> positions = wBInformF2Reg.getContent().getPosition();
                 for (int i = 0; i < positions.size(); i++) {
 
@@ -1594,9 +1600,9 @@ public class DataModule {
                         e.printStackTrace();
                     }
 
-                    if (!result) {
+                    /*                    if (!result) {
                         break;
-                    }
+                    }*/
                 }
 
             }
@@ -1846,6 +1852,21 @@ public class DataModule {
     }
 
     private boolean SaveRequestRepealWb(RequestRepealWB requestRepealWB, String p_guid) {
+        PreparedStatement stmt;
+        String sqlQuery;
+        try {
+            sqlQuery =
+                String.format(SET_REQREPL_WB, requestRepealWB.getWBRegId(), requestRepealWB.getRequestNumber(),
+                              requestRepealWB.getRequestDate(), requestRepealWB.getClientId());
+
+            stmt = connection.prepareStatement(sqlQuery);
+            stmt.execute();
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+
         return false;
     }
 }

@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 
 import java.net.HttpURLConnection;
@@ -45,7 +46,9 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
@@ -65,6 +68,8 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import mak.fbBase.DataModule;
+
+import mak.wegais.ReplyForm2History;
 
 import org.firebirdsql.pool.FBWrappingDataSource;
 
@@ -215,11 +220,35 @@ public class EGAISparser {
                 }        */
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(Documents.class);
+            
+            Binder<Node> binder=jaxbContext.createBinder();
+            JAXBElement<Documents> yourWrapper = binder.unmarshal(document, Documents.class);
+            Documents rootElement = yourWrapper.getValue();            
+            
             Unmarshaller un = jaxbContext.createUnmarshaller();
+            
             DataModule dataModule = DataModule.getInstance();
             dataModule.setConnection(conn);
             Documents doc = (Documents)un.unmarshal(url);
-            if (dataModule.saveDocuments(doc, hostUrl.recno, hostUrl.replyID)){
+            Node rootNode= binder.getXMLNode(rootElement);
+            Node commentNode=rootNode.getLastChild();
+            if (commentNode.getNodeType()==Node.COMMENT_NODE){
+                String comment=commentNode.getTextContent();
+                if (doc.getDocument().getReplyForm2() != null) {
+                                                                   
+                try {
+                    JAXBContext jaxbComment=JAXBContext.newInstance(ReplyForm2History.class);
+                    Unmarshaller un1 = jaxbComment.createUnmarshaller();
+                    ReplyForm2History repHist=(ReplyForm2History)un1.unmarshal(new StreamSource( new StringReader(comment)));
+                    dataModule.SaveReplyForm2Hist(doc.getDocument().getReplyForm2(),repHist);
+                }
+                catch (JAXBException e) {
+            e.printStackTrace();
+        }
+                }
+            }
+            if (dataModule.saveDocuments(doc, hostUrl.recno, hostUrl.replyID) | doc.getDocument().getReplyForm2() != null
+            ){
                 RemoveXMLDoc(url);
             }
         } catch (JAXBException e) {

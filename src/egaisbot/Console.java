@@ -210,10 +210,12 @@ public class Console {
             //            uhost.ParseUrl((String)docList.get(i).url);
             System.out.println((String)docList.get(i).url);
             //            try {
+            if (docList.get(i).recno>183600){
             try {
                 egp.GetURLXML(docList.get(i));
             } catch (IOException e) {
                 e.printStackTrace();
+            }
             }
             //new URL(docList.get(i).url),docList.get(i).replyID);
             //            } catch (MalformedURLException e) {

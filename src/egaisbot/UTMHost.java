@@ -34,6 +34,7 @@ public class UTMHost {
         int recno;
         String url;
         String replyID;
+        String fileID;
     }
 
     class SortHosts implements Comparator<HostElement> {
